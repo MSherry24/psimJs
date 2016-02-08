@@ -1,4 +1,4 @@
-var psimJS = require("./testPsimJS.js");
+var psimJS = require("./psimJS.js");
 var id = process.argv[2];
 
 if (!id) {
