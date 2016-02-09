@@ -1,1 +1,7 @@
+#Folders
+node_modules
+out
+
+#Files
 npm-debug.log
+

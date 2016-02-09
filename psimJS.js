@@ -1,6 +1,7 @@
 const child = require('child_process');
+var public = {};
 
-module.exports.run = function run(numChildren, worker) {
+public.run = function run(numChildren, worker) {
     var i = 0,
         children = {};
 
