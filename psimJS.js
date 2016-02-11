@@ -10,7 +10,6 @@ var _process,
     _messages = {},
     _callbacks = {};
 
-/** @namespace */
 function finalize() {
     _process.exit(0);
 }
@@ -60,12 +59,12 @@ function init(process, id, startFunction) {
  */
 function run(numChildren, fileName) {
     var self = this,
-        i = 1,
+        i = 0,
         _children = {},
         readyChildren = 0;
     self._nprocs = numChildren;
-    for (i; i <= numChildren; i++) {
-        _children[i] = child.fork(fileName, [i]);
+    for (i; i < numChildren; i++) {
+        _children[i] = child.fork(fileName, [i, true]);
 
         _children[i].on('close', function (code) {
             console.log('child process exited with code ' + code);
@@ -134,8 +133,8 @@ function send(j, data) {
 }
 
 function _startChildren(children, numChildren) {
-    var i = 1;
-    for (i; i <= numChildren; i++) {
+    var i = 0;
+    for (i; i < numChildren; i++) {
         children[i].send(JSON.stringify({"ready": true}));
     }
 }
