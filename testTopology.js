@@ -4,7 +4,8 @@ var id = process.argv[2],
 
 if (!childProcess) {
     var options = {
-        topology: 'MESH1'
+        topology: 'TORUS1',
+        p: 3
     };
     psimJS.run(3, 'testTopology.js', options);
 } else {

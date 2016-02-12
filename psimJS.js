@@ -20,12 +20,14 @@ var _process,
             if (!p) {
                 throw new Error('Torus Topology needs a p value');
             }
-            var _p = p;
             return function (i,j) {
-                return (i-j+_p) % _p === 1 || (j-i+_p) % _p === 1;
+                return (i-j+p) % p === 1 || (j-i+p) % p === 1;
             }
         },
         MESH2: function (p) {
+            if (!p) {
+                throw new Error('Mesh Topology needs a p value');
+            }
             var _q = Math.floor((Math.sqrt(p)+0.1));
             return function (i,j) {
                 var a = Math.pow((i%_q-j%_q),2),
@@ -34,6 +36,9 @@ var _process,
             }
         },
         TORUS2: function(p) {
+            if (!p) {
+                throw new Error('Torus Topology needs a p value');
+            }
             var _q = Math.floor((Math.sqrt(p) + 0.1));
             return function (i, j) {
                 var a = (i % _q - j % _q + _q) % _q,
