@@ -1,14 +1,53 @@
 const child = require('child_process');
-/**
- * @fileOverview An MPI Simulator for NodeJS
- * @author <a href="mikesherry24@gmail.com">Mike Sherry</a>
- * @version 1.0.0
- */
 var _process,
     _id,
     _nprocs,
     _messages = {},
-    _callbacks = {};
+    _callbacks = {},
+    _topologyMap = {
+        BUS: function (i,j) {
+            return true;
+        },
+        SWITCH: function (i,j) {
+            return true;
+        },
+        MESH1: function (p) {
+            return function(i,j) {
+                return Math.pow(i-j, 2) === 1;
+            }
+        },
+        TORUS1: function TORUS1(p) {
+            if (!p) {
+                throw new Error('Torus Topology needs a p value');
+            }
+            var _p = p;
+            return function (i,j) {
+                return (i-j+_p) % _p === 1 || (j-i+_p) % _p === 1;
+            }
+        },
+        MESH2: function (p) {
+            var _q = Math.floor((Math.sqrt(p)+0.1));
+            return function (i,j) {
+                var a = Math.pow((i%_q-j%_q),2),
+                    b = Math.pow((i/_q-j/_q),2);
+                return (!a && b) || (a && !b);
+            }
+        },
+        TORUS2: function(p) {
+            var _q = Math.floor((Math.sqrt(p) + 0.1));
+            return function (i, j) {
+                var a = (i % _q - j % _q + _q) % _q,
+                    b = (i / _q - j / _q + _q) % _q,
+                    c = (j % _q - i % _q + _q) % _q,
+                    d = (j / _q - i / _q + _q) % _q;
+                return ((!a && b) || (a && !b)) || ((!c && d) || (c && !d));
+            }
+        },
+        TREE: function(i,j) {
+            return (i === Math.floor((j-1)/2)) || (j === Math.floor((i-1)/2));
+        }
+    },
+    _topology = _topologyMap.SWITCH;
 
 function finalize() {
     _process.exit(0);
@@ -33,36 +72,16 @@ function init(process, id, startFunction) {
     _process.send(initReady);
     console.log(id + ' end init');
 }
-/**
- * Initializes the simulator by created the number of processes requested and running the requested file on each child process
- * @param numChildren {Integer} The number of child processes that will be created
- * @param fileName {String} The name of the file to run (usually the name of the file that is calling this function)
- * @example
- * // When this example program is first called, id will be null so psimJS.run() will run
- * // and create three child processes. Each process will run the file 'worker.js',
- * // which should be the file that contains this code. The child processes
- * // pass in their id as the argument process.argv[2]. Since the id variable
- * // is populated in the child processes, doWork() will be called instead of
- * // psimJS.run().
- *
- * var psimJS = require("./psimJS.js");
- * var id = process.argv[2];
- *
- * if (!id) {
- *     psimJS.run(3, 'worker.js');
- * } else {
- *     doWork();
- * }
- *
- * function doWork() { ... }
- * @returns null
- */
-function run(numChildren, fileName) {
+
+function run(numChildren, fileName, options) {
     var self = this,
         i = 0,
         _children = {},
         readyChildren = 0;
     self._nprocs = numChildren;
+    if (options && options.topology) {
+        _topology = _topologyMap[options.topology](options.p);
+    }
     for (i; i < numChildren; i++) {
         _children[i] = child.fork(fileName, [i, true]);
 
@@ -84,12 +103,21 @@ function run(numChildren, fileName) {
                     _startChildren(_children, numChildren);
                 }
             } else {
-                _children[toId].send(m);
-                console.log('parent received message from child ' + message.from + ' to child ' + message.to + ': ' + message.data);
+                _handleParentSend(m, message, _children[toId]);
             }
         });
     }
 }
+
+function _handleParentSend(m, message, child) {
+    if (_topology(message.to, message.from)) {
+        child.send(m);
+        console.log('Parent received message from child ' + message.from + ' to child ' + message.to + ': ' + message.data);
+    } else {
+        throw new Error('Topology cannot send from ' + message.from + ' to ' + message.to);
+    }
+}
+
 function receive(j, callback) {
     console.log('receive ' + _id + ': start');
     if (_messages[j]) {
@@ -107,21 +135,7 @@ function receive(j, callback) {
         }
     }
 }
-/** Sends data to process #j
- * @param j {Number}
- * @param data
- * @example
- * // Sends a message from process 2 to process 0
- * var psimJS = require("./psimJS.js");
- * var id = process.argv[2];
- * ... initialize child processes ...
- *
- * function doWork() {
- *    if (id === 2) {
- *       psimJS.send(0, {message: 'hi'});
- *    }
- * }
- */
+
 function send(j, data) {
     var message = {
         from: _id,
@@ -137,6 +151,10 @@ function _startChildren(children, numChildren) {
     for (i; i < numChildren; i++) {
         children[i].send(JSON.stringify({"ready": true}));
     }
+}
+
+function topology(i,j) {
+    return self._topology(i,j);
 }
 
 function handleMessage(fromId, data) {
@@ -162,5 +180,6 @@ module.exports = {
     init: init,
     run: run,
     send: send,
-    receive: receive
+    receive: receive,
+    topology: topology
 };
