@@ -5,11 +5,22 @@ var _process,
     _messages = {},
     _callbacks = {},
     _topologyMap = {
-        BUS: function (i,j) {
-            return true;
+        BUS: function () {
+            return function(i,j) {
+                return true;
+            }
         },
-        SWITCH: function (i,j) {
-            return true;
+        SWITCH: function() {
+            return function (i,j) {
+                return true;
+            }
+        },
+        TREE: function() {
+            return function(i,j) {
+                var _i = parseInt(i),
+                    _j = parseInt(j);
+                return (_i === Math.floor((j-1)/2)) || (_j === Math.floor((i-1)/2));
+            }
         },
         MESH1: function (p) {
             return function(i,j) {
@@ -41,15 +52,14 @@ var _process,
             }
             var _q = Math.floor((Math.sqrt(p) + 0.1));
             return function (i, j) {
-                var a = (i % _q - j % _q + _q) % _q,
+                var i = parseInt(i),
+                    j = parseInt(j),
+                    a = (i % _q - j % _q + _q) % _q,
                     b = (i / _q - j / _q + _q) % _q,
                     c = (j % _q - i % _q + _q) % _q,
                     d = (j / _q - i / _q + _q) % _q;
                 return ((!a && b) || (a && !b)) || ((!c && d) || (c && !d));
             }
-        },
-        TREE: function(i,j) {
-            return (i === Math.floor((j-1)/2)) || (j === Math.floor((i-1)/2));
         }
     },
     _topology = _topologyMap.SWITCH;
