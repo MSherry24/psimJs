@@ -71,7 +71,7 @@ function finalize() {
 function init(process, id, startFunction) {
     console.log(id + ' begin init');
     _process = process;
-    _id = id;
+    _id = parseInt(id);
     _process.on('message', function (m) {
         console.log('child ' + _id + ' got a message');
         var message = JSON.parse(m);
@@ -93,7 +93,6 @@ function run(numChildren, fileName, options) {
         i = 0,
         _children = {},
         readyChildren = 0;
-    self._nprocs = numChildren;
     if (options && options.topology) {
         _topology = _topologyMap[options.topology](options.p);
     }
@@ -108,8 +107,7 @@ function run(numChildren, fileName, options) {
         });
         // When the parent gets a message, immediately send it to its recipient
         _children[i].on('message', function (m) {
-            var message = JSON.parse(m),
-                toId = message.to;
+            var message = JSON.parse(m);
             if (message.ready) {
                 readyChildren +=  1;
                 console.log('got ' + readyChildren + ' ready messages');
@@ -117,10 +115,26 @@ function run(numChildren, fileName, options) {
                     console.log('sending ready signal');
                     _startChildren(_children, numChildren);
                 }
-            } else {
-                _handleParentSend(m, message, _children[toId]);
+            } else if (message.type === 'SEND') {
+                _handleParentSend(m, message, _children[message.to]);
+            } else if (message.type === 'ONE2ALLBCAST') {
+                console.log('parent got one 2 all message');
+                _handleOne2AllBroadcast(m, message, _children, numChildren);
             }
         });
+    }
+}
+
+function _handleOne2AllBroadcast(m, message, children, numChildren) {
+    var i = 0;
+    console.log('nprocs = ' + _nprocs);
+    for (i; i < numChildren; i++) {
+        console.log('handle one 2 all: ' + i);
+        if (parseInt(message.from) !== i) {
+            console.log('sending');
+            children[i].send(m);
+            console.log('One to all broadcast from ' + message.from + ' to child ' + i + ': ' + message.data);
+        }
     }
 }
 
@@ -132,6 +146,8 @@ function _handleParentSend(m, message, child) {
         throw new Error('Topology cannot send from ' + message.from + ' to ' + message.to);
     }
 }
+
+
 
 function receive(j, callback) {
     console.log('receive ' + _id + ': start');
@@ -152,10 +168,15 @@ function receive(j, callback) {
 }
 
 function send(j, data) {
+    _send(j, data, 'SEND');
+}
+
+function _send(j, data, type) {
     var message = {
         from: _id,
         to: j,
-        data: data
+        data: data,
+        type: type
     };
     console.log('send ' + _id + ': sending message from ' + message.from + ' to ' + message.to);
     _process.send(JSON.stringify(message));
@@ -190,11 +211,25 @@ function handleMessage(fromId, data) {
     }
 }
 
+function one2AllBroadcast(source, data, callback) {
+    console.log("process " + _id + " BEGIN one2all_broadcast, source: " + source);
+    console.log(typeof source);
+    console.log(typeof _id);
+    console.log('_id = ' + _id);
+    console.log('source = ' + source);
+    if (_id === source) {
+        _send('', data, 'ONE2ALLBCAST');
+    } else {
+        receive(source, callback);
+    }
+}
+
 module.exports = {
     finalize: finalize,
     init: init,
     run: run,
     send: send,
     receive: receive,
-    topology: topology
+    topology: topology,
+    one2AllBroadcast : one2AllBroadcast
 };
