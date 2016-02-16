@@ -1,6 +1,6 @@
 var id = process.argv[2],
     childProcess = process.argv[3],
-    psimJS = require("./psimJS.js");
+    psimJS = require("./../psimJS.js");
 
 if (!childProcess) {
     var options = {
