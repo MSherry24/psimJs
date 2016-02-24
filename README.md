@@ -76,7 +76,6 @@ inputs:
         feilds: topology and p.  Topology can be one of the topology options listed 
         below.  If no value is provided, SWITCH will be used as the default. Some toplogies
         require a value for p to set the dimensionality of the topology.
-outputs: None
 description: Creates a number of child processes that each run the file indicated by the 
     fileName argument.
 
@@ -135,7 +134,6 @@ function doWork() { ... }
 ```
 finalize()
 inputs: None
-outputs: None
 description: Kills the current process.  Must be called at the end of each process or
     else program will never complete.
 ```
@@ -148,7 +146,6 @@ send(j, data)
 inputs: 
     [Number] j - id of the process that will receive the data
     [object] data - data that will be send to process j.  Can be any Javascript object.
-Outputs: None
 ```
 ##### receive()
 ```
@@ -158,7 +155,6 @@ inputs:
     [Function] callback - function that will be called when the data is received from 
         process j.  The data object is passed into the callback function as its first
         argument.
-Outputs: None
 ```
 Example Send and Receive
 ```
@@ -191,7 +187,92 @@ function doWork() {
 ```
 
 ##### one2AllBroadcast()
+```
+one2AllBroadcast(source, data, callback)
+inputs: 
+    [Number] source - the id of process that is sending the data
+    [Object] data - the data that will be send from the source to all
+        other processes
+    [Function] callback - the function that will be run by each receiving
+        process. The data from the sending process will be passed into the
+        callback function as an argument
+description: The process whose id is equal to the source input argument will
+    send the data object to all other processes.  If a process that is not the
+    source calls this function, it will wait to receive a message from the source
+    and then call the callback function.  The source object does not call the 
+    callback function. 
+```
+one2AllBroadcast Example
+```
+var id = process.argv[2],
+    childProcess = process.argv[3],
+    psimJS = require("./../psimJS.js");
+
+if (!childProcess) {
+    var options = {
+        topology: 'SWITCH',
+    };
+    psimJS.run(10, 'testOne2All.js', options);
+} else {
+    console.log('init process ' + id);
+    psimJS.init(process, id, doWork);
+}
+
+function doWork() {
+    psimJS.one2AllBroadcast(0, 'hello other functions!', function (data) {
+        console.log('got message: ' + data);
+        psimJS.finalize();
+    });
+    if (id === '0') {
+        psimJS.finalize();
+    }
+}
+```
+
 ##### all2OneCollect()
+```
+all2OneCollect(destination, value, callback)
+inputs: 
+    [Number] destination - the id of process that will receive all the data
+    [Object] value - the data that will be send from the processes to the
+        destination
+    [Function] callback - the function that will be run by the destination
+        process. An array of the data from the sending processes will be 
+        passed into the callback function as an argument
+description: The process whose id is equal to the destination input argument will
+    receive data from all other processes as an array. The sending objects do 
+    not call the callback function. 
+```
+all2OneCollect Example
+```
+var id = process.argv[2],
+    childProcess = process.argv[3],
+    psimJS = require("./../psimJS.js");
+
+if (!childProcess) {
+    var options = {
+        topology: 'SWITCH',
+    };
+    psimJS.run(10, 'testAll2OneColl.js', options);
+} else {
+    psimJS.init(process, id, doWork);
+}
+
+function doWork() {
+    psimJS.all2OneCollect(0, id, function (data) {
+        var total = 0;
+        data.forEach(function (x) {
+            total += parseInt(x);
+        });
+        console.log('SUM: ' + total); // should be 45
+        console.log('Expected SUM: 45'); // should be 45
+        psimJS.finalize();
+    });
+    if (id !== '0') {
+        psimJS.finalize();
+    }
+}
+```
 ##### all2AllBroadcast()
 ##### all2OneReduce()
 ##### all2AllReduce()
