@@ -274,6 +274,40 @@ function doWork() {
 }
 ```
 ##### all2AllBroadcast()
+```
+all2AllBroadcast(value, callback)
+inputs:
+    [Object] value - The data that will be sent by the calling process to all
+        other processes
+    [Function] callback - This function is called once the values sent by all
+        processes is collected into an array.  The array of all values will be
+        passed into the callback function as an argument.
+description: Must be called by all processes before any callbacks are run. The
+    values passed by all of the processes are collected into an array and passed
+    back to all the processes.
+```
+Example all2AllBroadcast
+```
+var id = process.argv[2],
+    childProcess = process.argv[3],
+    psimJS = require("./../psimJS.js");
+
+if (!childProcess) {
+    var options = {
+        topology: 'SWITCH',
+    };
+    psimJS.run(10, 'testAll2AllBcast.js', options);
+} else {
+    psimJS.init(process, id, doWork);
+}
+
+function doWork() {
+    psimJS.all2AllBroadcast(id, function (data) {
+        console.log('end all2allbcast - id: ' + id + ' data = '  + data);
+        psimJS.finalize();
+    });
+}
+```
 ##### all2OneReduce()
 ##### all2AllReduce()
 ##### barrier()
