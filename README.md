@@ -68,18 +68,31 @@ The functionality of the common functions is the same between both versions, but
 #### Initializing
 #####run()
 ```
-run(numProcesses, fileName)
+run(numProcesses, fileName, options)
 inputs:
     [Number] numProcesses - The number of child processes to create
-    [String] fileName - The path and name of the file that the child process will run 
+    [String] fileName - The path and name of the file that the child process will run
+    [Object] options - options is not a required argument.  If used, it had two
+        feilds: topology and p.  Topology can be one of the topology options listed 
+        below.  If no value is provided, SWITCH will be used as the default. Some toplogies
+        require a value for p to set the dimensionality of the topology.
 outputs: None
+
+Valid options.topology values [STRING]:
+    BUS 
+    SWITCH 
+    TREE 
+    MESH1 - required p value
+    TORUS1 - required p value
+    MESH2 - required p value
+    TORUS2 - required p value
 ```
 #####init()
 ```
 init(process, id, callback)
 inputs:
-    [Object] process - process is a keyword in Node.js and controls a number of message passing functions used by psimJS. 
-        Always pass in the variable process as this argument.
+    [Object] process - process is a keyword in Node.js and controls a number of message passing 
+        functions used by psimJS. Always pass in the variable process as this argument.
     [String] id - When run() starts new child processes, it passes in a unique id as a command line argument.  
         This value should be captured in the child processes and passed into the init function.
     [Function] callback - After all child processes have called init(), the callback function will be 
@@ -115,6 +128,18 @@ if (!childProcess) {
 function doWork() { ... }
 ```
 
+#### Public Functions
+After initializing a child 
+process, you can call any of these functions.
+##### send()
+
+##### receive()
+##### one2AllBroadcast()
+##### all2OneCollect()
+##### all2AllBroadcast()
+##### all2OneReduce()
+##### all2AllReduce()
+##### barrier()
 
 
 
