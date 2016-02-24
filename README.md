@@ -54,8 +54,8 @@ if (id === 0) {
 
 ## psimJS Documentation
 Each version of psimJS provides eight public functions:
- -send
- -receive
+##### -send
+##### -receive
  -one2AllBroadcast
  -all2OneCollect
  -all2AllBroadcast
