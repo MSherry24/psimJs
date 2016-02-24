@@ -52,7 +52,21 @@ if (id === 0) {
     }
 ```
 
-Add additional notes about how to deploy this on a live system
+## psimJS Documentation
+Each version of psimJS provides eight public functions:
+ -send
+ -receive
+ -one2AllBroadcast
+ -all2OneCollect
+ -all2AllBroadcast
+ -all2OneReduce
+ -all2AllReduce
+ -barrier
+As well as a few function for initialization and finalizing that are unique to each implementation. 
+The functionality of the common functions is the same between both versions, but the arguments required a slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of this is handled by psimJS itself.
+### Node.js Version
+
+
 
 ## Authors
 
@@ -60,4 +74,4 @@ Add additional notes about how to deploy this on a live system
 
 ## Acknowledgments
 
-* Massimo DiPierro who wrote the original version of psim for Python [psim.py](https://dl.dropboxusercontent.com/u/18065445/DePaul/CSC503/psim.py)
+* Massimo DiPierro wrote the original version of psim for Python that this is based on - [psim.py](https://dl.dropboxusercontent.com/u/18065445/DePaul/CSC503/psim.py)
