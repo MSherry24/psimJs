@@ -54,14 +54,14 @@ if (id === 0) {
 
 ## psimJS Documentation
 Each version of psimJS provides eight public functions:
-##### -send
-##### -receive
- -one2AllBroadcast
- -all2OneCollect
- -all2AllBroadcast
- -all2OneReduce
- -all2AllReduce
- -barrier
+###### -send
+###### -receive
+###### -one2AllBroadcast
+###### -all2OneCollect
+###### -all2AllBroadcast
+###### -all2OneReduce
+###### -all2AllReduce
+###### -barrier
 As well as a few function for initialization and finalizing that are unique to each implementation. 
 The functionality of the common functions is the same between both versions, but the arguments required a slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of this is handled by psimJS itself.
 ### Node.js Version
