@@ -54,17 +54,60 @@ if (id === 0) {
 
 ## psimJS Documentation
 Each version of psimJS provides eight public functions:
-###### -send
-###### -receive
-###### -one2AllBroadcast
-###### -all2OneCollect
-###### -all2AllBroadcast
-###### -all2OneReduce
-###### -all2AllReduce
-###### -barrier
+##### -send
+##### -receive
+##### -one2AllBroadcast
+##### -all2OneCollect
+##### -all2AllBroadcast
+##### -all2OneReduce
+##### -all2AllReduce
+##### -barrier
 As well as a few function for initialization and finalizing that are unique to each implementation. 
-The functionality of the common functions is the same between both versions, but the arguments required a slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of this is handled by psimJS itself.
+The functionality of the common functions is the same between both versions, but the arguments required a slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of the work is handled by psimJS behind the scenes.
 ### Node.js Version
+#### Initializing
+```
+run(numProcesses, fileName)
+inputs:
+    [Number] numProcesses - The number of child processes to create
+    [String] fileName - The path and name of the file that is to run by the child processes
+outputs/callbacks: None
+```
+```
+init(process, id, callback)
+inputs:
+    [Object] process - process is a keyword in Node.js and controls a number of message passing functions used by psimJS. Always pass in the variable process as this argument.
+    [String] id - When run() starts new child processes, it passes in a unique id as a command line argument.  This value should be captured in the child processes and passed into the init function.
+    [Function] callback - After all child processes have called init(), the callback function will be called for each child process
+```
+Example Initialization:
+```
+/*** worker.js
+* In this example, id and childprocess are undefined the first time the program is run.  Since childProcess is undefined,
+* psimJS.run() is called passing in 2 for the number of child processes to be created and 'worker.js' as the file to be run.
+* It is assumed that the file shown below is worker.js, but run() and init() can, in theory, be in different files.
+* run() will fork two child processes and pass in a unique id and a boolean true value as command line arguments.
+* the id (argv[2]) is set to the variable id, and a boolean true (argv[3]) is set to the variable childProcess.  Since
+* childProcess is no longer undefined, init() will be run instead of run() in the child processes.  They will pass in their
+* own process object, their unique id, and the function doWork as arguments to init().  Once init() has been called by both
+* child processes, doWork() will be run for every child process.  doWork will have access to the id object since it is a global
+* variable.
+***/
+var id = process.argv[2],
+    childProcess = process.argv[3],
+    psimJS = require("./../psimJS.js");
+
+if (!childProcess) {
+    psimJS.run(2, 'worker.js');
+} else {
+    console.log('init process ' + id);
+    psimJS.init(process, id, doWork);
+}
+
+function doWork() { ... }
+```
+
+
 
 
 
