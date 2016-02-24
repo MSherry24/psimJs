@@ -77,15 +77,17 @@ inputs:
         below.  If no value is provided, SWITCH will be used as the default. Some toplogies
         require a value for p to set the dimensionality of the topology.
 outputs: None
+description: Creates a number of child processes that each run the file indicated by the 
+    fileName argument.
 
 Valid options.topology values [STRING]:
     BUS 
     SWITCH 
     TREE 
-    MESH1 - required p value
-    TORUS1 - required p value
-    MESH2 - required p value
-    TORUS2 - required p value
+    MESH1 - requires p value
+    TORUS1 - requires p value
+    MESH2 - requires p value
+    TORUS2 - requires p value
 ```
 #####init()
 ```
@@ -98,6 +100,8 @@ inputs:
     [Function] callback - After all child processes have called init(), the callback function will be 
         called for each child process
 outputs: None
+descriptions: Passes child process id and process object to psimJS for internal use, then kicks
+    off the callback function.
 ```
 Example Initialization:
 ```
@@ -127,13 +131,65 @@ if (!childProcess) {
 
 function doWork() { ... }
 ```
-
+#####finalize()
+```
+finalize()
+inputs: None
+outputs: None
+description: Kills the current process.  Must be called at the end of each process or
+    else program will never complete.
+```
 #### Public Functions
-After initializing a child 
+After initializing s child 
 process, you can call any of these functions.
 ##### send()
-
+```
+send(j, data)
+inputs: 
+    [Number] j - id of the process that will receive the data
+    [object] data - data that will be send to process j.  Can be any Javascript object.
+Outputs: None
+```
 ##### receive()
+```
+receive(j, callback)
+inputs: 
+    [Number] j - id of the process that is sending the data
+    [Function] callback - function that will be called when the data is received from 
+        process j.  The data object is passed into the callback function as its first
+        argument.
+Outputs: None
+```
+Example Send and Receive
+```
+var id = process.argv[2],
+    childProcess = process.argv[3],
+    psimJS = require("./../psimJS.js");
+
+if (!childProcess) {
+    psimJS.run(2, 'worker.js');
+} else {
+    console.log('init process ' + id);
+    psimJS.init(process, id, doWork);
+}
+
+function doWork() {
+    console.log('process ' + id + ' starting dowork');
+    if (id === '0') {
+        console.log('worker sending');
+        psimJS.send(1, 'Hi Process 1!');
+        psimJS.finalize();
+    } else {
+        console.log('process ' + id + ' calling receive');
+        psimJS.receive(0, function (data) {
+            console.log('callback called');
+            console.log(data);
+            psimJS.finalize();
+        });
+    }
+}
+```
+
 ##### one2AllBroadcast()
 ##### all2OneCollect()
 ##### all2AllBroadcast()
