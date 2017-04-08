@@ -9,7 +9,7 @@ Download psimJS.js and psimJSClient.js.  psimJS is the Node.js version and psimJ
 ### Prerequisities
 
 If you're using the Node.js version, make sure you have Node.js and npm installed on your computer.  psimJS uses Node's 'child-process' library, which should be globally available after you install Node.js.
-If you're using the client version, all you need is a relatively up to date version of a modern browser.  psimJS was developed using Chrome, but it should also work in Firefox and the latest version of IE (probably).
+If you're using the client version, all you need is a relatively up to date version of a modern browser.  psimJS was developed using Chrome, but it should also work in Firefox and the latest version of IE (probably) or Edge.
 
 ### Installing
 No installation is necessary, simply reference the file from your own code.
@@ -63,8 +63,8 @@ Each version of psimJS provides eight public functions:
 ##### -all2AllReduce
 ##### -barrier
 As well as a few function for initialization and finalizing that are unique to each implementation. 
-The functionality of the common functions is the same between both versions, but the arguments required a slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of the work is handled by psimJS behind the scenes. 
-Another important difference between the two versions is that the Client version is single threaded - since all Javascript processes are inherently single threaded - but the Node.js version will fork new child processes on your local machine.  Depending on the processor, this could mean that some code is run concurrently between processors.  Within a single process, however, Javascript's even loop still runs in normal single threaded fashion, which eliminates many of the common problems of concurrent software such as race conditions or non-deterministic execution order. 
+The functionality of the common functions is the same between both versions, but the arguments required are slightly different due to the different back end designs. The Node.js version also provides a few additional functions for creating and closing new processes, although most of the work is handled by psimJS behind the scenes. 
+An important difference between the two versions is that the Client version is single threaded - since all Javascript processes are inherently single threaded - but the Node.js version will fork new child processes on your local machine.  Depending on the processor, this could mean that some code is run concurrently between processors.  Within a single process, however, Javascript's event loop still runs in normal single threaded fashion, which eliminates many of the common problems of concurrent software such as race conditions or non-deterministic execution order. 
 ### Node.js Version
 #### Initializing
 #####run()
